@@ -1,0 +1,133 @@
+import { SystemStyleObject } from '@chakra-ui/react';
+
+export const SignUpFormStyles: Record<string, SystemStyleObject> = {
+  formContainer: {
+    width: '100%',
+    height: {
+      base: 'calc(100vh + 4rem)',
+      '4xl': 'calc(100vh - 8rem)',
+    },
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  formWrapper: {
+    width: {
+      base: '97%',
+      sm: '90%',
+      md: '70%',
+      lg: '60%',
+      xl: '50%',
+      '2xl': '40%',
+    },
+    height: '40rem',
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: '1rem',
+    boxShadow:
+      'rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;',
+  },
+  formControl: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+  },
+
+  title: {
+    color: '#1479ff',
+    fontFamily: 'Montserrat',
+    fontWeight: '500',
+    fontSize: '2rem',
+    margin: '1rem 0',
+  },
+  formLabel: {
+    alignSelf: 'start',
+    fontSize: '1.1rem',
+    fontFamily: 'Montserrat',
+    ml: '10%',
+    mb: '0.2rem',
+  },
+  input: {
+    width: '80%',
+    height: '2.5rem',
+    fontFamily: 'Montserrat',
+    borderRadius: '0.3rem',
+    borderColor: '#d5e6ff',
+    bg: '#E5F0FF',
+    _hover: { bg: '#d5e6ff' },
+    _focus: { bg: '#ffffff', borderColor: '#1479ff' },
+    pl: '0.3rem',
+    boxShadow: 'rgba(0, 0, 0, 0.1) -4px 9px 25px -6px;',
+  },
+  inputPasswordWrapper: {
+    position: 'relative',
+    width: '80%',
+  },
+  inputPassword: {
+    width: '100%',
+    height: '2.5rem',
+    fontFamily: 'Montserrat',
+    borderRadius: '0.3rem',
+    borderColor: '#d5e6ff',
+    bg: '#E5F0FF',
+    _hover: { bg: '#d5e6ff' },
+    _focus: { bg: '#ffffff', borderColor: '#1479ff' },
+    pl: '0.3rem',
+    boxShadow: 'rgba(0, 0, 0, 0.1) -4px 9px 25px -6px;',
+  },
+  eyeIcon: {
+    boxSize: '30px',
+    position: 'absolute',
+    right: '5px',
+    top: '5px',
+    bottom: '0',
+    cursor: 'pointer',
+  },
+  formErrorWrapper: {
+    display: 'flex',
+    justifyContent: 'center',
+    width: '80%',
+    height: '1.5rem',
+  },
+  formErrorMessage: {
+    fontFamily: 'Montserrat',
+    fontSize: '14px',
+  },
+  textAdvice: {
+    display: {
+      base: 'none',
+      sm: 'block',
+    },
+    fontFamily: 'Montserrat',
+    fontSize: '1rem',
+  },
+  buttonWrapper: {
+    width: '80%',
+    height: '3rem',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    mt: '1rem',
+  },
+  button: {
+    width: {
+      base: '70%',
+      sm: '40%',
+    },
+    height: '2.5rem',
+    borderRadius: '0.3rem',
+    fontSize: '1.3rem',
+    color: '#ffffff',
+    backgroundColor: '#193b68',
+    _hover: { bg: '#245494' },
+    _focus: { bg: '#193b68' },
+    transition: 'ease 0.1s',
+  },
+  link: {
+    fontFamily: 'Montserrat',
+    fontSize: '1rem',
+    fontWeight: '500',
+    ml: '0.5rem',
+  },
+};
