@@ -19,17 +19,16 @@ model User {
 }
 
 model Employee {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  avatar    String
-  name      String
-  cpf       String   @unique
-  email     String   @unique
-  date      DateTime
-  status    String
-  cep       String
-  state     String
-  city      String
-  street    String
-  district  String 
- 
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  avatar   String
+  name     String
+  cpf      String   @unique
+  email    String   @unique
+  date     DateTime
+  status   String
+  cep      String
+  state    String
+  city     String
+  street   String
+  district String
 }
