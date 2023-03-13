@@ -62,6 +62,7 @@ export const SignUpForm = () => {
         duration: 1600,
         isClosable: true,
       });
+      navigate(ROUTES.login);
     },
     onError: error => {
       if (error instanceof AxiosError) {
