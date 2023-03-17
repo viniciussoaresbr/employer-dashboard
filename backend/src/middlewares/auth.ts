@@ -1,5 +1,4 @@
 import { NextFunction, Response } from "express";
-import createError from "http-errors";
 import jwt from "jsonwebtoken";
 import { IRequest, IUserRequest } from "../interfaces";
 import { httpErrorsStatus } from "../utils/errors.status";

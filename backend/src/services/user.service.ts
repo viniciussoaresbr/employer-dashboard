@@ -21,6 +21,7 @@ const save = async (userBody: IUser) => {
   if (userExists) throw new createError.Conflict("E-mail já foi cadastrado");
 
   emailValidation(email);
+  passwordValidation(password);
 
   const userPassword = bcrypt.hashSync(password, 8);
 
