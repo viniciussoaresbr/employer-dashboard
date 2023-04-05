@@ -29,7 +29,15 @@ const save = async (employeeBody: IEmployee) => {
   });
 
   if (employeeExists)
-    throw new createHttpError.Conflict("E-mail já foi cadastrado");
+    throw new createHttpError.BadRequest("E-mail já foi cadastrado");
+
+  const cpfExists = await prisma.employee.findUnique({
+    where: {
+      cpf: employeeBody.cpf,
+    },
+  });
+
+  if (cpfExists) throw new createHttpError.BadRequest("Cpf já foi cadastrado");
 
   emailValidation(employeeBody.email);
   cpfValidation(employeeBody.cpf);
