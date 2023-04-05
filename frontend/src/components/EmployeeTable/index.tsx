@@ -13,6 +13,7 @@ import {
   Flex,
   Heading,
   Spinner,
+  Box,
 } from '@chakra-ui/react';
 import { TableStyles } from './styles';
 import { employeeDataTranslated } from '../../utils/translate';
@@ -89,23 +90,21 @@ export const EmployeeTable = () => {
   };
 
   const calcRowHeightSize =
-    EmployeesQuery.data.length < 5
-      ? `calc(20% * ${currentItems?.length})`
-      : '90%';
+    currentItems.length < 5 ? `calc(20% * ${currentItems?.length})` : '90%';
 
   const formattedData = currentItems.map(item => {
     const date = new Date(item.date);
     return {
       ...item,
-      date: format(date, 'dd-MM-yyyy'),
+      date: format(date, 'dd/MM/yyyy'),
     };
   });
 
   return (
-    <Flex sx={TableStyles.tableContainer}>
+    <Box sx={TableStyles.tableContainer}>
       <Table
-        variant="striped"
         sx={TableStyles.table}
+        variant="striped"
         height={calcRowHeightSize}
       >
         <Thead h="2.5rem">
@@ -141,21 +140,20 @@ export const EmployeeTable = () => {
             );
           })}
         </Tbody>
-        <Tfoot sx={TableStyles.tFoot}>
+        <Tfoot>
           <Tr>
             <Td colSpan={3}>
-              <HStack sx={TableStyles.paginationWrapper}>
+              <HStack sx={TableStyles.paginationContainer}>
                 <Button
                   sx={TableStyles.buttonNextPrev}
                   isDisabled={currentPage === 1}
-                  leftIcon={<ChevronLeftIcon />}
                   onClick={() => handlePageChange(currentPage - 1)}
                 >
-                  Anterior
+                  <ChevronLeftIcon sx={TableStyles.IconNextPrev} />
                 </Button>
                 {pageNumbers.map(pageNumber => (
                   <Button
-                    sx={TableStyles.buttonPageNumber}
+                    sx={TableStyles.buttonPagination}
                     key={pageNumber}
                     bg={currentPage === pageNumber ? '#011627' : '#193b68'}
                     onClick={() => handlePageChange(pageNumber)}
@@ -169,16 +167,15 @@ export const EmployeeTable = () => {
                     currentPage ===
                     Math.ceil(EmployeesQuery.data.length / itemsPerPage)
                   }
-                  rightIcon={<ChevronRightIcon />}
                   onClick={() => handlePageChange(currentPage + 1)}
                 >
-                  Próxima
+                  <ChevronRightIcon sx={TableStyles.IconNextPrev} />
                 </Button>
               </HStack>
             </Td>
           </Tr>
         </Tfoot>
       </Table>
-    </Flex>
+    </Box>
   );
 };

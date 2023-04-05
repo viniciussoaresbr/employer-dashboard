@@ -48,7 +48,6 @@ export const EmployeeForm = () => {
     handleSubmit,
     reset,
     clearErrors,
-    setError,
     formState: { errors },
   } = useForm<IEmployee>();
   const onSubmit: SubmitHandler<IEmployee> = data => {
@@ -80,10 +79,6 @@ export const EmployeeForm = () => {
       },
       onError: error => {
         if (error instanceof AxiosError) {
-          setError('email', {
-            type: 'custom',
-            message: error.response?.data.message,
-          });
           toast({
             title: error.response?.data.message,
             status: 'error',
