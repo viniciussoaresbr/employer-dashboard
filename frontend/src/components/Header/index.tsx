@@ -10,6 +10,7 @@ import { UserContext } from '../../contexts/User';
 import { useQuery } from '@tanstack/react-query';
 import { IUserById } from '../../types/user';
 import { UserProfile } from '../UserProfile';
+import { ProfileSkeleton } from '../ProfileSkeleton';
 
 interface IHeader {
   headerTitle: string;
@@ -25,7 +26,7 @@ export const Header = ({ headerTitle }: IHeader) => {
 
   const redirectToPage = () => (authToken ? ROUTES.home : ROUTES.login);
 
-  const { data } = useQuery<IUserById, Error>({
+  const { data, isSuccess } = useQuery<IUserById, Error>({
     queryKey: ['user', userId],
     queryFn: () => getUserById(userId),
   });
@@ -66,12 +67,14 @@ export const Header = ({ headerTitle }: IHeader) => {
         </Heading>
         <EnterpriseIcon cursor="pointer" />
       </Flex>
-      {authToken && (
+      {authToken && isSuccess ? (
         <UserProfile
           username={fullName}
           userMenuOptions={userMenuOptions}
           employeesMenuOptions={employeesMenuOptions}
         />
+      ) : (
+        authToken && <ProfileSkeleton />
       )}
     </Flex>
   );
