@@ -2,15 +2,10 @@ import { prisma } from "../database/prisma";
 import { IUser } from "../interfaces";
 import createError from "http-errors";
 import bcrypt from "bcryptjs";
-import { bodyValidation } from "../utils/body.validate";
 import { emailValidation, passwordValidation } from "../utils/user.validate";
 
 const save = async (userBody: IUser) => {
   const { name, lastname, email, password } = userBody;
-
-  const requiredKeys = ["name", "lastname", "email", "password"];
-
-  bodyValidation<IUser>(requiredKeys, userBody);
 
   const userExists = await prisma.user.findUnique({
     where: {
