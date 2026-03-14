@@ -12,7 +12,6 @@ import AuthProvider from '../contexts/Auth';
 import EmployeeProvider from '../contexts/Employee';
 import UserProvider from '../contexts/User';
 import { Home } from '../pages/Home';
-import { RegisterEmployee } from '../pages/RegisterEmployee';
 import { SignIn } from '../pages/SignIn';
 import { SignUp } from '../pages/SignUp';
 import { ROUTES } from './routes';
@@ -50,10 +49,6 @@ const Router = () => {
     {
       path: ROUTES.home,
       element: <Home />,
-    },
-    {
-      path: ROUTES.registerEmployee,
-      element: <RegisterEmployee />,
     },
   ];
 

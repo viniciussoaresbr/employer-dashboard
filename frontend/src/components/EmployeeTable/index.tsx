@@ -7,13 +7,14 @@ import {
   Tbody,
   Td,
   Avatar,
-  Tfoot,
   HStack,
   Button,
   Flex,
   Heading,
   Spinner,
   Box,
+  Badge,
+  Text,
 } from '@chakra-ui/react';
 import { TableStyles } from './styles';
 import { employeeDataTranslated } from '../../utils/translate';
@@ -27,7 +28,7 @@ export const EmployeeTable = () => {
   const { findAllEmployees } = useContext(EmployeeContext);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const itemsPerPage = 7;
   const columnsTable = [
     'avatar',
     'name',
@@ -52,9 +53,9 @@ export const EmployeeTable = () => {
       <Flex sx={TableStyles.loadingContainer}>
         <Spinner
           thickness="4px"
-          speed="0.4s"
-          emptyColor="gray.200"
-          color="#1479ff"
+          speed="0.6s"
+          emptyColor="gray.100"
+          color="blue.500"
           size="xl"
         />
       </Flex>
@@ -64,7 +65,9 @@ export const EmployeeTable = () => {
   if (!EmployeesQuery?.data?.length) {
     return (
       <Flex sx={TableStyles.employeesEmpty}>
-        <Heading fontFamily="Open Sans">Nenhum funcionário cadastrado</Heading>
+        <Heading fontSize="1.2rem" fontWeight="600" color="gray.600">
+          Nenhum funcionário cadastrado
+        </Heading>
       </Flex>
     );
   }
@@ -76,21 +79,15 @@ export const EmployeeTable = () => {
     indexOfLastItem,
   );
 
+  const totalPages = Math.ceil(EmployeesQuery.data.length / itemsPerPage);
   const pageNumbers = [];
-  for (
-    let i = 1;
-    i <= Math.ceil(EmployeesQuery.data.length / itemsPerPage);
-    i++
-  ) {
+  for (let i = 1; i <= totalPages; i++) {
     pageNumbers.push(i);
   }
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
-
-  const calcRowHeightSize =
-    currentItems.length < 5 ? `calc(20% * ${currentItems?.length})` : '90%';
 
   const formattedData = currentItems.map(item => {
     const date = new Date(item.date);
@@ -102,80 +99,90 @@ export const EmployeeTable = () => {
 
   return (
     <Box sx={TableStyles.tableContainer}>
-      <Table
-        sx={TableStyles.table}
-        variant="striped"
-        height={calcRowHeightSize}
-      >
-        <Thead h="2.5rem">
+      <Table sx={TableStyles.table} variant="simple">
+        <Thead sx={TableStyles.thead}>
           <Tr>
-            {columnsTable.map(label => {
-              return <Th key={label}>{employeeDataTranslated[label]}</Th>;
-            })}
+            {columnsTable.map(label => (
+              <Th key={label}>{employeeDataTranslated[label]}</Th>
+            ))}
           </Tr>
         </Thead>
-        <Tbody>
-          {formattedData.map((item, index) => {
-            return (
-              <Tr key={index}>
-                <Td>
-                  <Avatar
-                    src={`${process.env.REACT_APP_API_BASE_URL}/download/${item.avatar}`}
-                    name={item.name}
-                    sx={TableStyles.avatar}
-                    borderRadius="50%"
-                  />
-                </Td>
-                <Td>{item.name}</Td>
-                <Td>{item.cpf}</Td>
-                <Td>{item.email}</Td>
-                <Td>{item.date}</Td>
-                <Td>{item.status}</Td>
-                <Td>{item.cep}</Td>
-                <Td>{item.state}</Td>
-                <Td>{item.city}</Td>
-                <Td>{item.street}</Td>
-                <Td>{item.district}</Td>
-              </Tr>
-            );
-          })}
+        <Tbody sx={TableStyles.tbody}>
+          {formattedData.map((item, index) => (
+            <Tr key={index}>
+              <Td>
+                <Avatar
+                  src={`${process.env.REACT_APP_API_BASE_URL}/download/${item.avatar}`}
+                  name={item.name}
+                  sx={TableStyles.avatar}
+                />
+              </Td>
+              <Td fontWeight="500">{item.name}</Td>
+              <Td>{item.cpf}</Td>
+              <Td>{item.email}</Td>
+              <Td>{item.date}</Td>
+              <Td>
+                <Badge
+                  colorScheme={item.status === 'Ativo' ? 'green' : 'red'}
+                  variant="subtle"
+                  borderRadius="full"
+                  px="2"
+                  textTransform="none"
+                  fontSize="0.75rem"
+                >
+                  {item.status}
+                </Badge>
+              </Td>
+              <Td>{item.cep}</Td>
+              <Td>{item.state}</Td>
+              <Td>{item.city}</Td>
+              <Td>{item.street}</Td>
+              <Td>{item.district}</Td>
+            </Tr>
+          ))}
         </Tbody>
-        <Tfoot>
-          <Tr>
-            <Td colSpan={3}>
-              <HStack sx={TableStyles.paginationContainer}>
-                <Button
-                  sx={TableStyles.buttonNextPrev}
-                  isDisabled={currentPage === 1}
-                  onClick={() => handlePageChange(currentPage - 1)}
-                >
-                  <ChevronLeftIcon sx={TableStyles.IconNextPrev} />
-                </Button>
-                {pageNumbers.map(pageNumber => (
-                  <Button
-                    sx={TableStyles.buttonPagination}
-                    key={pageNumber}
-                    bg={currentPage === pageNumber ? '#011627' : '#193b68'}
-                    onClick={() => handlePageChange(pageNumber)}
-                  >
-                    {pageNumber}
-                  </Button>
-                ))}
-                <Button
-                  sx={TableStyles.buttonNextPrev}
-                  isDisabled={
-                    currentPage ===
-                    Math.ceil(EmployeesQuery.data.length / itemsPerPage)
-                  }
-                  onClick={() => handlePageChange(currentPage + 1)}
-                >
-                  <ChevronRightIcon sx={TableStyles.IconNextPrev} />
-                </Button>
-              </HStack>
-            </Td>
-          </Tr>
-        </Tfoot>
       </Table>
+      
+      <Flex sx={TableStyles.paginationContainer}>
+        <HStack spacing="2">
+          <Button
+            sx={TableStyles.buttonNextPrev}
+            isDisabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+            leftIcon={<ChevronLeftIcon />}
+            variant="outline"
+            size="sm"
+          >
+            Anterior
+          </Button>
+          
+          <HStack spacing="1">
+            {pageNumbers.map(pageNumber => (
+              <Button
+                key={pageNumber}
+                sx={TableStyles.buttonPagination}
+                colorScheme={currentPage === pageNumber ? 'blue' : 'gray'}
+                variant={currentPage === pageNumber ? 'solid' : 'ghost'}
+                size="sm"
+                onClick={() => handlePageChange(pageNumber)}
+              >
+                {pageNumber}
+              </Button>
+            ))}
+          </HStack>
+
+          <Button
+            sx={TableStyles.buttonNextPrev}
+            isDisabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+            rightIcon={<ChevronRightIcon />}
+            variant="outline"
+            size="sm"
+          >
+            Próximo
+          </Button>
+        </HStack>
+      </Flex>
     </Box>
   );
 };

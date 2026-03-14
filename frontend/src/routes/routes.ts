@@ -5,5 +5,4 @@ export const ROUTES = {
 
   // Auth routes
   home: '/',
-  registerEmployee: '/cadastrar-funcionario',
 };

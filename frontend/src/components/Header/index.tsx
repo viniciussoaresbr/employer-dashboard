@@ -29,29 +29,31 @@ export const Header = ({ headerTitle }: IHeader) => {
   const { data, isSuccess } = useQuery<IUserById, Error>({
     queryKey: ['user', userId],
     queryFn: () => getUserById(userId),
+    enabled: !!userId && !!authToken,
   });
 
-  const fullName = `${data?.name} ${data?.lastname}`;
+  const fullName = data ? `${data.name} ${data.lastname}` : '';
 
   const userMenuOptions = [
     {
-      label: 'Logout',
+      label: 'Meu Perfil',
+      onClick: () => {
+        console.log('Meu Perfil');
+      },
+    },
+    {
+      label: 'Configurações',
+      onClick: () => {
+        console.log('Configurações');
+      },
+    },
+    {
+      label: 'Sair',
       icon: <LogoutIcon />,
       onClick: () => {
         handleLogout();
         navigate(ROUTES.login);
       },
-    },
-  ];
-
-  const employeesMenuOptions = [
-    {
-      label: 'Visualizar',
-      onClick: () => navigate(ROUTES.home),
-    },
-    {
-      label: 'Cadastrar',
-      onClick: () => navigate(ROUTES.registerEmployee),
     },
   ];
 
@@ -62,17 +64,13 @@ export const Header = ({ headerTitle }: IHeader) => {
         sx={HeaderStyles.titleWrapper}
         onClick={() => navigate(redirectToPage())}
       >
+        <EnterpriseIcon fill="#2D3748" cursor="pointer" />
         <Heading as="h1" sx={HeaderStyles.title}>
           {headerTitle}
         </Heading>
-        <EnterpriseIcon cursor="pointer" />
       </Flex>
       {authToken && isSuccess ? (
-        <UserProfile
-          username={fullName}
-          userMenuOptions={userMenuOptions}
-          employeesMenuOptions={employeesMenuOptions}
-        />
+        <UserProfile username={fullName} userMenuOptions={userMenuOptions} />
       ) : (
         authToken && <ProfileSkeleton />
       )}

@@ -5,19 +5,20 @@ import {
   FormControl,
   FormErrorMessage,
   FormLabel,
-  Heading,
   Image,
   Input,
   Select,
   Switch,
   useToast,
+  SimpleGrid,
+  Text,
+  VStack,
 } from '@chakra-ui/react';
 
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import React, { useState, useContext } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { EmployeeFormStyles } from './styles';
-import { useNavigate } from 'react-router-dom';
 import {
   validatingCep,
   validatingCpf,
@@ -30,18 +31,20 @@ import {
   fetchingStatesData,
 } from '../../service/getLocation';
 import { ICity, IState } from '../../types/location';
-import { ROUTES } from '../../routes/routes';
 import { PictureIcon } from '../../assets/PictureIcon';
 import { EmployeeContext } from '../../contexts/Employee';
 import { AxiosError } from 'axios';
 
-export const EmployeeForm = () => {
+interface EmployeeFormProps {
+  onSuccess?: () => void;
+  onCancel?: () => void;
+}
+
+export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
   const { sendingImage, registerEmployee } = useContext(EmployeeContext);
   const [selectedState, setSelectedState] = useState('');
   const [avatarId, setAvatarId] = useState('');
   const toast = useToast();
-
-  const navigate = useNavigate();
 
   const {
     register,
@@ -50,6 +53,7 @@ export const EmployeeForm = () => {
     clearErrors,
     formState: { errors },
   } = useForm<IEmployee>();
+
   const onSubmit: SubmitHandler<IEmployee> = data => {
     delete data.avatar;
     const formattedData: IEmployee = {
@@ -75,7 +79,7 @@ export const EmployeeForm = () => {
           duration: 1600,
           isClosable: true,
         });
-        navigate(ROUTES.home);
+        if (onSuccess) onSuccess();
       },
       onError: error => {
         if (error instanceof AxiosError) {
@@ -99,6 +103,7 @@ export const EmployeeForm = () => {
     queryKey: ['cities', selectedState],
     queryFn: () => fetchingCityByState(selectedState),
     refetchOnWindowFocus: false,
+    enabled: !!selectedState,
   });
 
   const handleSelectChange = (state: string) => {
@@ -118,9 +123,7 @@ export const EmployeeForm = () => {
   const maxImageSize = 2 * 1024 * 1024;
 
   const appendImage = (image: File) => {
-    if (!image) {
-      return;
-    }
+    if (!image) return;
 
     if (image?.type !== 'image/jpeg' && image?.type !== 'image/png') {
       toast({
@@ -150,299 +153,223 @@ export const EmployeeForm = () => {
   };
 
   return (
-    <Flex
+    <VStack
       as="form"
       sx={EmployeeFormStyles.formWrapper}
       onSubmit={handleSubmit(onSubmit)}
+      align="stretch"
+      spacing={6}
     >
-      <Heading sx={EmployeeFormStyles.title}>Cadastrar Funcionário</Heading>
-      <Flex sx={EmployeeFormStyles.formControllWrapper}>
-        <FormControl isInvalid={!!errors.avatar}>
-          <FormLabel sx={EmployeeFormStyles.formLabelAvatar}>
-            Foto de perfil :
-          </FormLabel>
-          {avatarId ? (
-            <FormLabel htmlFor="upload-image">
-              <Image
-                src={`${process.env.REACT_APP_API_BASE_URL}/download/${avatarId}`}
-                sx={EmployeeFormStyles.imageUpload}
-              />
+      {/* Personal Info Section */}
+      <Box>
+        <Text sx={EmployeeFormStyles.sectionTitle}>Informações Pessoais</Text>
+        <Flex sx={EmployeeFormStyles.avatarSection} mb={4}>
+          <FormControl isInvalid={!!errors.avatar} w="auto">
+            {avatarId ? (
+              <FormLabel htmlFor="upload-image" m={0}>
+                <Image
+                  src={`${process.env.REACT_APP_API_BASE_URL}/download/${avatarId}`}
+                  sx={EmployeeFormStyles.imageUpload}
+                />
+              </FormLabel>
+            ) : (
+              <FormLabel
+                htmlFor="upload-image"
+                sx={EmployeeFormStyles.circleUpload}
+                m={0}
+              >
+                <PictureIcon />
+              </FormLabel>
+            )}
+            <Input
+              display="none"
+              accept="image/jpeg, image/png"
+              id="upload-image"
+              type="file"
+              {...register('avatar', {
+                onChange: event => appendImage(event.target.files[0]),
+              })}
+            />
+          </FormControl>
+          <FormControl display="flex" alignItems="center" w="auto">
+            <FormLabel mb="0" sx={EmployeeFormStyles.formLabel} mr={3}>
+              Status Ativo:
             </FormLabel>
-          ) : (
-            <FormLabel
-              htmlFor="upload-image"
-              sx={EmployeeFormStyles.circleUpload}
-            >
-              <PictureIcon />
-            </FormLabel>
-          )}
-          <Input
-            display="none"
-            accept="image/jpeg, image/png"
-            htmlSize={maxImageSize}
-            id="upload-image"
-            type="file"
-            {...register('avatar', {
-              onChange: event => appendImage(event.target.files[0]),
-            })}
-            name="avatar"
-          />
-          <Box sx={EmployeeFormStyles.formErrorWrapper}>
+            <Switch size="md" colorScheme="blue" {...register('status')} />
+          </FormControl>
+        </Flex>
+
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+          <FormControl isInvalid={!!errors.name}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>Nome Completo</FormLabel>
+            <Input
+              sx={EmployeeFormStyles.input}
+              placeholder="Ex: João Silva"
+              {...register('name', {
+                required: 'O nome é obrigatório',
+              })}
+            />
             <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-              {errors.avatar?.message}
+              {errors.name?.message}
             </FormErrorMessage>
-          </Box>
-        </FormControl>
-        <FormControl isInvalid={!!errors.status}>
-          <FormLabel
-            pointerEvents="none"
-            sx={EmployeeFormStyles.formLabelStatus}
-          >
-            Ativo :
-          </FormLabel>
-          <Switch size="lg" {...register('status')} name="status" />
-        </FormControl>
-      </Flex>
-      <FormControl
-        isInvalid={!!errors.name}
-        sx={EmployeeFormStyles.formControl}
-      >
-        <FormLabel sx={EmployeeFormStyles.formLabel}>Nome:</FormLabel>
-        <Input
-          sx={EmployeeFormStyles.input}
-          variant="filled"
-          type="text"
-          placeholder="Digite seu nome"
-          {...register('name', {
-            required: {
-              value: true,
-              message: 'O campo de nome não pode estar vazio',
-            },
-          })}
-          name="name"
-        />
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.name?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl isInvalid={!!errors.cpf} sx={EmployeeFormStyles.formControl}>
-        <FormLabel sx={EmployeeFormStyles.formLabel}>CPF:</FormLabel>
-        <Input
-          sx={EmployeeFormStyles.input}
-          variant="filled"
-          type="text"
-          placeholder="Ex: 000.000.000-00"
-          {...register('cpf', {
-            required: {
-              value: true,
-              message: 'O campo de cpf não pode estar vazio',
-            },
-            validate: validatingCpf,
-          })}
-          name="cpf"
-        />
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.cpf?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl
-        isInvalid={!!errors.email}
-        sx={EmployeeFormStyles.formControl}
-      >
-        <FormLabel sx={EmployeeFormStyles.formLabel}>E-mail:</FormLabel>
-        <Input
-          sx={EmployeeFormStyles.input}
-          variant="filled"
-          type="text"
-          placeholder="Digite seu e-mail"
-          {...register('email', {
-            required: {
-              value: true,
-              message: 'O campo de e-mail não pode estar vazio',
-            },
-            validate: validatingEmail,
-          })}
-          name="email"
-        />
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.email?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl
-        isInvalid={!!errors.date}
-        sx={EmployeeFormStyles.formControl}
-      >
-        <FormLabel sx={EmployeeFormStyles.formLabel}>
-          Data de Contratação:
-        </FormLabel>
-        <Input
-          sx={EmployeeFormStyles.input}
-          type="date"
-          {...register('date', {
-            required: {
-              value: true,
-              message: 'A data não pode estar vazia',
-            },
-          })}
-          name="date"
-        />
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.date?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl isInvalid={!!errors.cep} sx={EmployeeFormStyles.formControl}>
-        <FormLabel sx={EmployeeFormStyles.formLabel}>CEP:</FormLabel>
-        <Input
-          variant="filled"
-          sx={EmployeeFormStyles.input}
-          type="text"
-          placeholder="Ex: 00000-000"
-          {...register('cep', {
-            required: {
-              value: true,
-              message: 'O campo de cep não pode estar vazio',
-            },
-            validate: validatingCep,
-          })}
-          name="cep"
-        />
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.cep?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl
-        isInvalid={!!errors.state}
-        sx={EmployeeFormStyles.formControl}
-      >
-        <FormLabel sx={EmployeeFormStyles.formLabel}>Estado:</FormLabel>
-        <Select
-          disabled={statesQuery.isLoading}
-          width="80%"
-          sx={EmployeeFormStyles.select}
-          variant="filled"
-          icon={<ChevronDownIcon position="absolute" right="5px" />}
-          {...register('state', {
-            required: {
-              value: true,
-              message: 'O campo de estado não pode estar vazio',
-            },
-            onChange: e => {
-              handleSelectChange(e.target.value);
-            },
-          })}
-          name="state"
-        >
-          <option value="">Selecione um estado</option>
-          {statesQuery.data?.map(({ sigla, nome }) => (
-            <option key={sigla} value={sigla}>
-              {nome}
-            </option>
-          ))}
-        </Select>
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.state?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl
-        isInvalid={!!errors.city}
-        sx={EmployeeFormStyles.formControl}
-      >
-        <FormLabel sx={EmployeeFormStyles.formLabel}>Cidades:</FormLabel>
-        <Select
-          isDisabled={citiesQuery.data?.length === 0}
-          width="80%"
-          sx={EmployeeFormStyles.select}
-          variant="filled"
-          icon={<ChevronDownIcon position="absolute" right="5px" />}
-          {...register('city', {
-            required: {
-              value: true,
-              message: 'O campo de cidades não pode estar vazio',
-            },
-          })}
-          name="city"
-        >
-          {citiesQuery.data?.map(({ id, nome }) => (
-            <option key={id} value={nome}>
-              {nome}
-            </option>
-          ))}
-        </Select>
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.city?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl
-        isInvalid={!!errors.street}
-        sx={EmployeeFormStyles.formControl}
-      >
-        <FormLabel sx={EmployeeFormStyles.formLabel}>Logradouro:</FormLabel>
-        <Input
-          sx={EmployeeFormStyles.input}
-          variant="filled"
-          type="text"
-          {...register('street', {
-            required: {
-              value: true,
-              message: 'O campo de nome não pode estar vazio',
-            },
-          })}
-          name="street"
-        />
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.street?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
-      <FormControl
-        isInvalid={!!errors.district}
-        sx={EmployeeFormStyles.formControl}
-      >
-        <FormLabel sx={EmployeeFormStyles.formLabel}>Bairro:</FormLabel>
-        <Input
-          sx={EmployeeFormStyles.input}
-          variant="filled"
-          type="text"
-          {...register('district', {
-            required: {
-              value: true,
-              message: 'O campo de nome não pode estar vazio',
-            },
-          })}
-          name="district"
-        />
-        <Box sx={EmployeeFormStyles.formErrorWrapper}>
-          <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
-            {errors.district?.message}
-          </FormErrorMessage>
-        </Box>
-      </FormControl>
+          </FormControl>
+
+          <FormControl isInvalid={!!errors.cpf}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>CPF</FormLabel>
+            <Input
+              sx={EmployeeFormStyles.input}
+              placeholder="000.000.000-00"
+              {...register('cpf', {
+                required: 'O CPF é obrigatório',
+                validate: validatingCpf,
+              })}
+            />
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.cpf?.message}
+            </FormErrorMessage>
+          </FormControl>
+
+          <FormControl isInvalid={!!errors.email}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>E-mail</FormLabel>
+            <Input
+              sx={EmployeeFormStyles.input}
+              placeholder="joao@exemplo.com"
+              {...register('email', {
+                required: 'O e-mail é obrigatório',
+                validate: validatingEmail,
+              })}
+            />
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.email?.message}
+            </FormErrorMessage>
+          </FormControl>
+
+          <FormControl isInvalid={!!errors.date}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>Data de Contratação</FormLabel>
+            <Input
+              sx={EmployeeFormStyles.input}
+              type="date"
+              {...register('date', {
+                required: 'A data é obrigatória',
+              })}
+            />
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.date?.message}
+            </FormErrorMessage>
+          </FormControl>
+        </SimpleGrid>
+      </Box>
+
+      {/* Address Section */}
+      <Box>
+        <Text sx={EmployeeFormStyles.sectionTitle}>Endereço</Text>
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+          <FormControl isInvalid={!!errors.cep}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>CEP</FormLabel>
+            <Input
+              sx={EmployeeFormStyles.input}
+              placeholder="00000-000"
+              {...register('cep', {
+                required: 'O CEP é obrigatório',
+                validate: validatingCep,
+              })}
+            />
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.cep?.message}
+            </FormErrorMessage>
+          </FormControl>
+
+          <FormControl isInvalid={!!errors.state}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>Estado</FormLabel>
+            <Select
+              sx={EmployeeFormStyles.select}
+              placeholder="Selecione"
+              {...register('state', {
+                required: 'O estado é obrigatório',
+                onChange: e => handleSelectChange(e.target.value),
+              })}
+            >
+              {statesQuery.data?.map(({ sigla, nome }) => (
+                <option key={sigla} value={sigla}>
+                  {nome}
+                </option>
+              ))}
+            </Select>
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.state?.message}
+            </FormErrorMessage>
+          </FormControl>
+
+          <FormControl isInvalid={!!errors.city}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>Cidade</FormLabel>
+            <Select
+              sx={EmployeeFormStyles.select}
+              placeholder="Selecione"
+              isDisabled={!selectedState}
+              {...register('city', {
+                required: 'A cidade é obrigatória',
+              })}
+            >
+              {citiesQuery.data?.map(({ id, nome }) => (
+                <option key={id} value={nome}>
+                  {nome}
+                </option>
+              ))}
+            </Select>
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.city?.message}
+            </FormErrorMessage>
+          </FormControl>
+        </SimpleGrid>
+
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mt={4}>
+          <FormControl isInvalid={!!errors.street}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>Logradouro</FormLabel>
+            <Input
+              sx={EmployeeFormStyles.input}
+              placeholder="Rua, Avenida..."
+              {...register('street', {
+                required: 'O logradouro é obrigatório',
+              })}
+            />
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.street?.message}
+            </FormErrorMessage>
+          </FormControl>
+
+          <FormControl isInvalid={!!errors.district}>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>Bairro</FormLabel>
+            <Input
+              sx={EmployeeFormStyles.input}
+              placeholder="Nome do bairro"
+              {...register('district', {
+                required: 'O bairro é obrigatório',
+              })}
+            />
+            <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>
+              {errors.district?.message}
+            </FormErrorMessage>
+          </FormControl>
+        </SimpleGrid>
+      </Box>
+
       <Flex sx={EmployeeFormStyles.buttonWrapper}>
         <Button
-          sx={EmployeeFormStyles.buttonBack}
-          onClick={() => navigate(ROUTES.home)}
+          variant="ghost"
+          sx={EmployeeFormStyles.button}
+          onClick={onCancel}
         >
           Cancelar
         </Button>
-        <Button sx={EmployeeFormStyles.button} type="submit">
-          Cadastrar
+        <Button
+          colorScheme="blue"
+          sx={EmployeeFormStyles.button}
+          type="submit"
+          isLoading={employeeMutate.isLoading}
+        >
+          Salvar Funcionário
         </Button>
       </Flex>
-    </Flex>
+    </VStack>
   );
 };
