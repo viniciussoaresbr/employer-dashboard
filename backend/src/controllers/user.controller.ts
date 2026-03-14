@@ -1,21 +1,16 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { userService } from "../services/user.service";
-import { httpErrorsStatus } from "../utils/errors.status";
 
-const save = async (req: Request, res: Response) => {
+const save = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await userService.save(req.body);
     res.status(201).send({ message: "Usuário criado com sucesso" });
   } catch (error) {
-    if (error instanceof Error) {
-      const statusCode =
-        httpErrorsStatus[error.name as keyof typeof httpErrorsStatus];
-      res.status(statusCode || 500).send({ message: error.message });
-    }
+    next(error);
   }
 };
 
-const findUserById = async (req: Request, res: Response) => {
+const findUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await userService.findUserById(req.params.userId);
     const formattedData = {
@@ -26,9 +21,7 @@ const findUserById = async (req: Request, res: Response) => {
     };
     res.status(200).send(formattedData);
   } catch (error) {
-    res
-      .status(httpErrorsStatus.BadRequestError)
-      .send({ message: "Usuário não encontrado" });
+    next(error);
   }
 };
 
