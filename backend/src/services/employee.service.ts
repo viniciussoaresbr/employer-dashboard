@@ -38,4 +38,66 @@ const findAll = () => {
   return prisma.employee.findMany();
 };
 
-export const EmployeeService = { save, findAll };
+const update = async (id: string, employeeBody: IEmployee) => {
+  const employeeExists = await prisma.employee.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!employeeExists)
+    throw new createHttpError.NotFound("Funcionário não encontrado");
+
+  if (employeeBody.email !== employeeExists.email) {
+    const emailExists = await prisma.employee.findUnique({
+      where: {
+        email: employeeBody.email,
+      },
+    });
+    if (emailExists)
+      throw new createHttpError.BadRequest("E-mail já foi cadastrado");
+  }
+
+  if (employeeBody.cpf !== employeeExists.cpf) {
+    const cpfExists = await prisma.employee.findUnique({
+      where: {
+        cpf: employeeBody.cpf,
+      },
+    });
+    if (cpfExists)
+      throw new createHttpError.BadRequest("Cpf já foi cadastrado");
+  }
+
+  emailValidation(employeeBody.email);
+  cpfValidation(employeeBody.cpf);
+  cepValidation(employeeBody.cep);
+
+  const employee = await prisma.employee.update({
+    where: {
+      id,
+    },
+    data: {
+      ...employeeBody,
+    },
+  });
+  return employee;
+};
+
+const deleteById = async (id: string) => {
+  const employeeExists = await prisma.employee.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!employeeExists)
+    throw new createHttpError.NotFound("Funcionário não encontrado");
+
+  await prisma.employee.delete({
+    where: {
+      id,
+    },
+  });
+};
+
+export const EmployeeService = { save, findAll, update, deleteById };

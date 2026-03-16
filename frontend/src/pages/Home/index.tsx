@@ -37,7 +37,7 @@ export const Home = () => {
       <EmployeeTable />
 
       <Modal isOpen={isOpen} onClose={onClose} size="3xl" scrollBehavior="inside">
-        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalOverlay />
         <ModalContent borderRadius="xl">
           <ModalHeader borderBottom="1px solid" borderColor="gray.100" py={4}>
             Cadastrar Novo Funcionário

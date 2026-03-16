@@ -27,7 +27,7 @@ export const SignInFormStyles: Record<string, SystemStyleObject> = {
     width: '100%',
   },
   title: {
-    color: 'gray.800',
+    color: 'blue.800',
     fontFamily: 'Open Sans',
     fontWeight: '700',
     fontSize: '1.8rem',

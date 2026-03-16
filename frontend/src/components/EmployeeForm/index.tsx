@@ -15,8 +15,7 @@ import {
   VStack,
 } from '@chakra-ui/react';
 
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { EmployeeFormStyles } from './styles';
 import {
@@ -25,10 +24,11 @@ import {
   validatingEmail,
 } from '../../utils/validators';
 import { IEmployee } from '../../types/employee';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   fetchingCityByState,
   fetchingStatesData,
+  fetchingAddressByCep,
 } from '../../service/getLocation';
 import { ICity, IState } from '../../types/location';
 import { PictureIcon } from '../../assets/PictureIcon';
@@ -38,12 +38,20 @@ import { AxiosError } from 'axios';
 interface EmployeeFormProps {
   onSuccess?: () => void;
   onCancel?: () => void;
+  initialData?: IEmployee;
 }
 
-export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
-  const { sendingImage, registerEmployee } = useContext(EmployeeContext);
-  const [selectedState, setSelectedState] = useState('');
-  const [avatarId, setAvatarId] = useState('');
+export const EmployeeForm = ({
+  onSuccess,
+  onCancel,
+  initialData,
+}: EmployeeFormProps) => {
+  const { sendingImage, registerEmployee, updateEmployee } =
+    useContext(EmployeeContext);
+  const queryClient = useQueryClient();
+  const [selectedState, setSelectedState] = useState(initialData?.state || '');
+  const [avatarId, setAvatarId] = useState(initialData?.avatar || '');
+  const [addressCity, setAddressCity] = useState(initialData?.city || '');
   const toast = useToast();
 
   const {
@@ -51,11 +59,30 @@ export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
     handleSubmit,
     reset,
     clearErrors,
+    setValue,
     formState: { errors },
-  } = useForm<IEmployee>();
+  } = useForm<IEmployee>({
+    mode: 'onBlur',
+    defaultValues: initialData
+      ? ({
+          ...initialData,
+          date: initialData.date
+            ? new Date(initialData.date).toISOString().split('T')[0]
+            : undefined,
+          status: initialData.status === 'Ativo',
+        } as any)
+      : undefined,
+  });
+
+  useEffect(() => {
+    if (initialData) {
+      setSelectedState(initialData.state);
+      setAvatarId(initialData.avatar || '');
+      setAddressCity(initialData.city);
+    }
+  }, [initialData]);
 
   const onSubmit: SubmitHandler<IEmployee> = data => {
-    delete data.avatar;
     const formattedData: IEmployee = {
       ...data,
       avatar: avatarId,
@@ -63,14 +90,52 @@ export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
       date: new Date(data.date),
     };
 
-    employeeMutate.mutate(formattedData);
+    if (initialData?.id) {
+      delete formattedData.id;
+      delete formattedData.formattedDate;
+
+      employeeUpdateMutate.mutate({
+        id: initialData.id,
+        employee: formattedData,
+      });
+    } else {
+      employeeMutate.mutate(formattedData);
+    }
   };
+
+  const employeeUpdateMutate = useMutation<
+    { message: string },
+    Error,
+    { id: string; employee: IEmployee }
+  >(({ id, employee }) => updateEmployee(id, employee), {
+    onSuccess: data => {
+      queryClient.invalidateQueries(['employee']);
+      toast({
+        title: data.message,
+        status: 'success',
+        duration: 1600,
+        isClosable: true,
+      });
+      if (onSuccess) onSuccess();
+    },
+    onError: error => {
+      if (error instanceof AxiosError) {
+        toast({
+          title: error.response?.data.message,
+          status: 'error',
+          duration: 1600,
+          isClosable: true,
+        });
+      }
+    },
+  });
 
   const employeeMutate = useMutation<{ message: string }, Error, IEmployee>(
     ['employee'],
     registerEmployee,
     {
       onSuccess: data => {
+        queryClient.invalidateQueries(['employee']);
         reset();
         clearErrors();
         toast({
@@ -106,8 +171,38 @@ export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
     enabled: !!selectedState,
   });
 
+  useEffect(() => {
+    if (citiesQuery.isSuccess && addressCity) {
+      const cityExists = citiesQuery.data.some(
+        city => city.nome === addressCity,
+      );
+      if (cityExists) {
+        setValue('city', addressCity, { shouldValidate: true });
+        setAddressCity('');
+      }
+    }
+  }, [citiesQuery.isSuccess, citiesQuery.data, addressCity, setValue]);
+
   const handleSelectChange = (state: string) => {
     setSelectedState(state);
+  };
+
+  const handleCepChange = async (cep: string) => {
+    const cleanedCep = cep.replace(/\D/g, '');
+    if (cleanedCep.length === 8) {
+      try {
+        const address = await fetchingAddressByCep(cleanedCep);
+        if (address && !address.erro) {
+          setValue('state', address.uf, { shouldValidate: true });
+          setSelectedState(address.uf);
+          setValue('street', address.logradouro, { shouldValidate: true });
+          setValue('district', address.bairro, { shouldValidate: true });
+          setAddressCity(address.localidade);
+        }
+      } catch (error) {
+        console.error('Error fetching address:', error);
+      }
+    }
   };
 
   const uploadImageMutate = useMutation<string, Error, FormData>(
@@ -201,7 +296,9 @@ export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
 
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
           <FormControl isInvalid={!!errors.name}>
-            <FormLabel sx={EmployeeFormStyles.formLabel}>Nome Completo</FormLabel>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>
+              Nome Completo
+            </FormLabel>
             <Input
               sx={EmployeeFormStyles.input}
               placeholder="Ex: João Silva"
@@ -245,7 +342,9 @@ export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
           </FormControl>
 
           <FormControl isInvalid={!!errors.date}>
-            <FormLabel sx={EmployeeFormStyles.formLabel}>Data de Contratação</FormLabel>
+            <FormLabel sx={EmployeeFormStyles.formLabel}>
+              Data de Contratação
+            </FormLabel>
             <Input
               sx={EmployeeFormStyles.input}
               type="date"
@@ -272,6 +371,7 @@ export const EmployeeForm = ({ onSuccess, onCancel }: EmployeeFormProps) => {
               {...register('cep', {
                 required: 'O CEP é obrigatório',
                 validate: validatingCep,
+                onChange: e => handleCepChange(e.target.value),
               })}
             />
             <FormErrorMessage sx={EmployeeFormStyles.formErrorMessage}>

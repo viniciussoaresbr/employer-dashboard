@@ -31,6 +31,6 @@ export const HeaderStyles: Record<string, SystemStyleObject> = {
     fontFamily: 'Open Sans',
     fontWeight: '600',
     fontSize: '1.4rem',
-    color: 'gray.800',
+    color: 'blue.800',
   },
 };

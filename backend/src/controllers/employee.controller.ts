@@ -10,7 +10,7 @@ const save = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-const findAll = async (req: Request, res: Response, next: NextFunction) => {
+const findAll = async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const data = await EmployeeService.findAll();
     res.status(200).send(data);
@@ -19,4 +19,24 @@ const findAll = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export const employeeController = { save, findAll };
+const update = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    await EmployeeService.update(id, req.body);
+    res.status(200).send({ message: "Funcionário atualizado com sucesso" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    await EmployeeService.deleteById(id);
+    res.status(200).send({ message: "Funcionário excluído com sucesso" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const employeeController = { save, findAll, update, deleteById };

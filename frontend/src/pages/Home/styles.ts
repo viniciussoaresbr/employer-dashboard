@@ -32,6 +32,6 @@ export const HomeStyles: Record<string, SystemStyleObject> = {
     fontFamily: 'Open Sans',
     fontSize: '1.5rem',
     fontWeight: '700',
-    color: 'gray.800',
+    color: 'blue.800',
   },
 };

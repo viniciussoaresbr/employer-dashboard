@@ -14,21 +14,54 @@ import {
   Spinner,
   Box,
   Badge,
-  Text,
+  IconButton,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useToast,
 } from '@chakra-ui/react';
 import { TableStyles } from './styles';
 import { employeeDataTranslated } from '../../utils/translate';
-import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  DeleteIcon,
+  EditIcon,
+} from '@chakra-ui/icons';
 import { EmployeeContext } from '../../contexts/Employee';
 import { IEmployee } from '../../types/employee';
-import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { format, parseISO } from 'date-fns';
+import { EmployeeForm } from '../EmployeeForm';
 
 export const EmployeeTable = () => {
-  const { findAllEmployees } = useContext(EmployeeContext);
+  const { findAllEmployees, deleteEmployee } = useContext(EmployeeContext);
+  const queryClient = useQueryClient();
+  const toast = useToast();
+
+  const {
+    isOpen: isEditOpen,
+    onOpen: onEditOpen,
+    onClose: onEditClose,
+  } = useDisclosure();
+
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 7;
+  const [selectedEmployee, setSelectedEmployee] = useState<IEmployee | null>(
+    null,
+  );
+
+  const itemsPerPage = 10;
   const columnsTable = [
     'avatar',
     'name',
@@ -41,12 +74,50 @@ export const EmployeeTable = () => {
     'city',
     'street',
     'district',
+    'actions',
   ];
 
   const EmployeesQuery = useQuery<IEmployee[], Error>({
     queryKey: ['employee'],
     queryFn: findAllEmployees,
   });
+
+  const deleteMutation = useMutation((id: string) => deleteEmployee(id), {
+    onSuccess: data => {
+      queryClient.invalidateQueries(['employee']);
+      toast({
+        title: data.message,
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+      onDeleteClose();
+    },
+    onError: () => {
+      toast({
+        title: 'Erro ao excluir funcionário',
+        status: 'error',
+        duration: 2000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const handleEditClick = (employee: IEmployee) => {
+    setSelectedEmployee(employee);
+    onEditOpen();
+  };
+
+  const handleDeleteClick = (employee: IEmployee) => {
+    setSelectedEmployee(employee);
+    onDeleteOpen();
+  };
+
+  const confirmDelete = () => {
+    if (selectedEmployee?.id) {
+      deleteMutation.mutate(selectedEmployee.id);
+    }
+  };
 
   if (EmployeesQuery.isLoading) {
     return (
@@ -89,13 +160,13 @@ export const EmployeeTable = () => {
     setCurrentPage(pageNumber);
   };
 
-  const formattedData = currentItems.map(item => {
-    const date = new Date(item.date);
-    return {
-      ...item,
-      date: format(date, 'dd/MM/yyyy'),
-    };
-  });
+  const formattedData = currentItems.map(item => ({
+    ...item,
+    formattedDate: format(
+      parseISO(String(item.date).slice(0, 10)),
+      'dd/MM/yyyy',
+    ),
+  }));
 
   return (
     <Box sx={TableStyles.tableContainer}>
@@ -103,14 +174,20 @@ export const EmployeeTable = () => {
         <Thead sx={TableStyles.thead}>
           <Tr>
             {columnsTable.map(label => (
-              <Th key={label}>{employeeDataTranslated[label]}</Th>
+              <Th key={label}>
+                {label === 'actions' ? 'Ações' : employeeDataTranslated[label]}
+              </Th>
             ))}
           </Tr>
         </Thead>
         <Tbody sx={TableStyles.tbody}>
           {formattedData.map((item, index) => (
-            <Tr key={index}>
-              <Td>
+            <Tr
+              key={index}
+              cursor="pointer"
+              onClick={() => handleEditClick(item)}
+            >
+              <Td onClick={e => e.stopPropagation()}>
                 <Avatar
                   src={`${process.env.REACT_APP_API_BASE_URL}/download/${item.avatar}`}
                   name={item.name}
@@ -120,7 +197,7 @@ export const EmployeeTable = () => {
               <Td fontWeight="500">{item.name}</Td>
               <Td>{item.cpf}</Td>
               <Td>{item.email}</Td>
-              <Td>{item.date}</Td>
+              <Td>{item.formattedDate}</Td>
               <Td>
                 <Badge
                   colorScheme={item.status === 'Ativo' ? 'green' : 'red'}
@@ -138,11 +215,31 @@ export const EmployeeTable = () => {
               <Td>{item.city}</Td>
               <Td>{item.street}</Td>
               <Td>{item.district}</Td>
+              <Td onClick={e => e.stopPropagation()}>
+                <HStack spacing="2">
+                  <IconButton
+                    aria-label="Editar funcionário"
+                    icon={<EditIcon />}
+                    size="sm"
+                    colorScheme="blue"
+                    variant="ghost"
+                    onClick={() => handleEditClick(item)}
+                  />
+                  <IconButton
+                    aria-label="Excluir funcionário"
+                    icon={<DeleteIcon />}
+                    size="sm"
+                    colorScheme="red"
+                    variant="ghost"
+                    onClick={() => handleDeleteClick(item)}
+                  />
+                </HStack>
+              </Td>
             </Tr>
           ))}
         </Tbody>
       </Table>
-      
+
       <Flex sx={TableStyles.paginationContainer}>
         <HStack spacing="2">
           <Button
@@ -155,7 +252,7 @@ export const EmployeeTable = () => {
           >
             Anterior
           </Button>
-          
+
           <HStack spacing="1">
             {pageNumbers.map(pageNumber => (
               <Button
@@ -183,6 +280,57 @@ export const EmployeeTable = () => {
           </Button>
         </HStack>
       </Flex>
+
+      {/* Edit Modal */}
+      <Modal
+        isOpen={isEditOpen}
+        onClose={onEditClose}
+        size="3xl"
+        scrollBehavior="inside"
+      >
+        <ModalOverlay />
+        <ModalContent borderRadius="xl">
+          <ModalHeader borderBottom="1px solid" borderColor="gray.100" py={4}>
+            Editar Funcionário
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody py={6}>
+            {selectedEmployee && (
+              <EmployeeForm
+                initialData={selectedEmployee}
+                onSuccess={onEditClose}
+                onCancel={onEditClose}
+              />
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Confirmar Exclusão</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            Tem certeza que deseja excluir o funcionário{' '}
+            <strong>{selectedEmployee?.name}</strong>? Esta ação não pode ser
+            desfeita.
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onDeleteClose}>
+              Cancelar
+            </Button>
+            <Button
+              colorScheme="red"
+              onClick={confirmDelete}
+              isLoading={deleteMutation.isLoading}
+            >
+              Excluir
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

@@ -6,7 +6,7 @@ export const FooterStyles: Record<string, SystemStyleObject> = {
     height: '4rem',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#193b68',
+    backgroundColor: 'blue.800',
     gap: '10px',
   },
 };

@@ -13,6 +13,8 @@ router.get("/users/:userId", authToken, userController.findUserById);
 router.post("/auth", authController.auth);
 router.post("/employees", authToken, employeeController.save);
 router.get("/employees", authToken, employeeController.findAll);
+router.put("/employees/:id", authToken, employeeController.update);
+router.delete("/employees/:id", authToken, employeeController.deleteById);
 router.post(
   "/upload",
   authToken,

@@ -59,7 +59,6 @@ export const UserProfile = ({ username, userMenuOptions }: IProfile) => {
               Minha Conta
             </Text>
           </Box>
-          <MenuDivider />
           {userMenuOptions.map(({ icon, label, onClick }, index) => (
             <React.Fragment key={label}>
               {index === userMenuOptions.length - 1 && <MenuDivider />}
