@@ -26,6 +26,25 @@ O projeto é uma aplicação web de gerenciamento de funcionários, utiliza **Re
 
 ---
 
+## 📸 Capturas de Tela
+
+### Home - Listagem de Funcionários
+![Home](./frontend/src/assets/screenshots/home.png)
+
+### Login e Cadastro de Usuário
+<p align="center">
+  <img src="./frontend/src/assets/screenshots/login.png" width="45%" />
+  <img src="./frontend/src/assets/screenshots/criar-conta.png" width="45%" />
+</p>
+
+### Cadastro e Edição de Funcionários
+<p align="center">
+  <img src="./frontend/src/assets/screenshots/cadastrar-funcionario.png" width="45%" />
+  <img src="./frontend/src/assets/screenshots/editar-funcionario.png" width="45%" />
+</p>
+
+---
+
 ## 🚀 Como Rodar o Projeto Localmente
 
 Siga os passos abaixo para configurar o ambiente e executar a aplicação em sua máquina.
