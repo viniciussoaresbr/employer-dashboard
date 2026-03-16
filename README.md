@@ -4,6 +4,26 @@ O projeto é uma aplicação web de gerenciamento de funcionários, utiliza **Re
 
 ---
 
+### Home - Listagem de Funcionários
+
+![Home](./frontend/src/assets/screenshots/home.png)
+
+### Login e Cadastro de Usuário
+
+<p align="center">
+  <img src="./frontend/src/assets/screenshots/login.png" width="45%" />
+  <img src="./frontend/src/assets/screenshots/criar-conta.png" width="45%" />
+</p>
+
+### Cadastro e Edição de Funcionários
+
+<p align="center">
+  <img src="./frontend/src/assets/screenshots/cadastrar-funcionario.png" width="45%" />
+  <img src="./frontend/src/assets/screenshots/editar-funcionario.png" width="45%" />
+</p>
+
+---
+
 ## 🛠 Tecnologias Utilizadas
 
 ### Frontend
@@ -23,25 +43,6 @@ O projeto é uma aplicação web de gerenciamento de funcionários, utiliza **Re
 - **MongoDB**: Banco de dados NoSQL flexível.
 - **Multer**: Middleware para upload e processamento de arquivos/imagens.
 - **JWT (JSON Web Token)**: Autenticação segura de usuários.
-
----
-
-## 📸 Capturas de Tela
-
-### Home - Listagem de Funcionários
-![Home](./frontend/src/assets/screenshots/home.png)
-
-### Login e Cadastro de Usuário
-<p align="center">
-  <img src="./frontend/src/assets/screenshots/login.png" width="45%" />
-  <img src="./frontend/src/assets/screenshots/criar-conta.png" width="45%" />
-</p>
-
-### Cadastro e Edição de Funcionários
-<p align="center">
-  <img src="./frontend/src/assets/screenshots/cadastrar-funcionario.png" width="45%" />
-  <img src="./frontend/src/assets/screenshots/editar-funcionario.png" width="45%" />
-</p>
 
 ---
 
