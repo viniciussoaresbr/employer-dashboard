@@ -97,13 +97,6 @@ Em um novo terminal, entre na pasta do frontend e instale as dependências:
 cd frontend
 npm install
 ```
-
-Crie um arquivo `.env` na pasta `frontend/` com:
-
-```env
-REACT_APP_API_BASE_URL=http://localhost:3001
-```
-
 ---
 
 ## 🏃 Executando a Aplicação
