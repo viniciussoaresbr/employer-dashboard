@@ -11,19 +11,20 @@ generator client {
 }
 
 model User {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  name     String
-  lastname String
-  email    String @unique
-  password String
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  lastname  String
+  email     String     @unique
+  password  String
+  employees Employee[]
 }
 
 model Employee {
   id       String   @id @default(auto()) @map("_id") @db.ObjectId
   avatar   String
   name     String
-  cpf      String   @unique
-  email    String   @unique
+  cpf      String
+  email    String
   date     DateTime
   status   String
   cep      String
@@ -31,4 +32,9 @@ model Employee {
   city     String
   street   String
   district String
+  userId   String   @db.ObjectId
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, cpf])
+  @@unique([userId, email])
 }

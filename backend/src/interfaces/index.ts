@@ -18,15 +18,17 @@ export interface IUser extends IUserLogin {
 }
 
 export interface IUserRequest {
-  userId: number;
+  userId: string;
   username: string;
 }
 
 export interface IRequest extends Request {
   user?: IUserRequest;
+  userId?: string;
 }
 
 export interface IEmployee {
+  id?: string;
   avatar: string;
   status: "Ativo" | "Inativo";
   name: string;
@@ -38,4 +40,5 @@ export interface IEmployee {
   district: string;
   city: string;
   state: string;
+  userId?: string;
 }

@@ -25,6 +25,7 @@ export const authToken = async (
         return next(new createError.Forbidden("Token de acesso inválido"));
       }
       req.user = user as IUserRequest;
+      req.userId = (user as IUserRequest).userId;
       next();
     }
   );

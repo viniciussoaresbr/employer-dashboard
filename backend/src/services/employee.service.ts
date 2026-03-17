@@ -4,9 +4,10 @@ import { IEmployee } from "../interfaces";
 import { cepValidation, cpfValidation } from "../utils/employee.validate";
 import { emailValidation } from "../utils/user.validate";
 
-const save = async (employeeBody: IEmployee) => {
-  const employeeExists = await prisma.employee.findUnique({
+const save = async (employeeBody: IEmployee, userId: string) => {
+  const employeeExists = await prisma.employee.findFirst({
     where: {
+      userId,
       email: employeeBody.email,
     },
   });
@@ -14,8 +15,9 @@ const save = async (employeeBody: IEmployee) => {
   if (employeeExists)
     throw new createHttpError.BadRequest("E-mail já foi cadastrado");
 
-  const cpfExists = await prisma.employee.findUnique({
+  const cpfExists = await prisma.employee.findFirst({
     where: {
+      userId,
       cpf: employeeBody.cpf,
     },
   });
@@ -26,22 +28,30 @@ const save = async (employeeBody: IEmployee) => {
   cpfValidation(employeeBody.cpf);
   cepValidation(employeeBody.cep);
 
+  const { id: _, userId: __, ...data } = employeeBody;
+
   const employee = await prisma.employee.create({
     data: {
-      ...employeeBody,
+      ...data,
+      userId,
     },
   });
   return employee;
 };
 
-const findAll = () => {
-  return prisma.employee.findMany();
+const findAll = (userId: string) => {
+  return prisma.employee.findMany({
+    where: {
+      userId,
+    },
+  });
 };
 
-const update = async (id: string, employeeBody: IEmployee) => {
-  const employeeExists = await prisma.employee.findUnique({
+const update = async (id: string, employeeBody: IEmployee, userId: string) => {
+  const employeeExists = await prisma.employee.findFirst({
     where: {
       id,
+      userId,
     },
   });
 
@@ -49,8 +59,9 @@ const update = async (id: string, employeeBody: IEmployee) => {
     throw new createHttpError.NotFound("Funcionário não encontrado");
 
   if (employeeBody.email !== employeeExists.email) {
-    const emailExists = await prisma.employee.findUnique({
+    const emailExists = await prisma.employee.findFirst({
       where: {
+        userId,
         email: employeeBody.email,
       },
     });
@@ -59,8 +70,9 @@ const update = async (id: string, employeeBody: IEmployee) => {
   }
 
   if (employeeBody.cpf !== employeeExists.cpf) {
-    const cpfExists = await prisma.employee.findUnique({
+    const cpfExists = await prisma.employee.findFirst({
       where: {
+        userId,
         cpf: employeeBody.cpf,
       },
     });
@@ -72,21 +84,24 @@ const update = async (id: string, employeeBody: IEmployee) => {
   cpfValidation(employeeBody.cpf);
   cepValidation(employeeBody.cep);
 
+  const { id: _, userId: __, ...updateData } = employeeBody;
+
   const employee = await prisma.employee.update({
     where: {
       id,
     },
     data: {
-      ...employeeBody,
+      ...updateData,
     },
   });
   return employee;
 };
 
-const deleteById = async (id: string) => {
-  const employeeExists = await prisma.employee.findUnique({
+const deleteById = async (id: string, userId: string) => {
+  const employeeExists = await prisma.employee.findFirst({
     where: {
       id,
+      userId,
     },
   });
 
